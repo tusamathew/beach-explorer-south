@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Te Waipounamu Beach Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 350px; }
+        }
+        .beach-scroll::-webkit-scrollbar { width: 8px; }
+        .beach-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+        .beach-scroll::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+        .beach-scroll::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="text-4xl">🏔️🌊</div>
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Te Waipounamu Beach Explorer</h1>
+                    <p class="text-xs text-slate-500 uppercase tracking-wider font-semibold">South Island Trip Planner</p>
+                </div>
+            </div>
+            <div class="hidden md:block text-right">
+                <p class="text-sm text-slate-600">Golden Bays to Wild West Coasts.</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <section class="max-w-3xl mx-auto text-center">
+            <h2 class="text-xl font-semibold text-slate-700 mb-2">Plan Your South Island Escape</h2>
+            <p class="text-slate-600 leading-relaxed">
+                From the golden sands of Abel Tasman to the rugged, driftwood-strewn beaches of the West Coast. 
+                Select your home base (default: Christchurch) to see what's feasible for a day trip versus a weekend adventure.
+            </p>
+        </section>
+
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Trip Configuration</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="space-y-2">
+                    <label for="home-base" class="block text-sm font-medium text-slate-700">Starting from:</label>
+                    <select id="home-base" class="w-full rounded-md border-slate-300 shadow-sm bg-slate-50 border p-2 focus:ring-2 focus:ring-teal-500 transition-colors">
+                        <option value="Christchurch" selected>Christchurch</option>
+                        <option value="Nelson">Nelson</option>
+                        <option value="Dunedin">Dunedin</option>
+                        <option value="Invercargill">Invercargill</option>
+                        <option value="Queenstown">Queenstown</option>
+                        <option value="Greymouth">Greymouth</option>
+                        <option value="Blenheim">Blenheim</option>
+                        <option value="Timaru">Timaru</option>
+                    </select>
+                </div>
+
+                <div class="space-y-2">
+                    <label for="beach-type" class="block text-sm font-medium text-slate-700">Experience Type:</label>
+                    <select id="beach-type" class="w-full rounded-md border-slate-300 shadow-sm bg-slate-50 border p-2 focus:ring-2 focus:ring-teal-500 transition-colors">
+                        <option value="All">All Types</option>
+                        <option value="Scenic">Scenic & Wild</option>
+                        <option value="Swimming">Safe Swimming</option>
+                        <option value="Surf">Surf Breaks</option>
+                        <option value="Family">Family Friendly</option>
+                    </select>
+                </div>
+
+                <div class="space-y-2">
+                    <label for="region-filter" class="block text-sm font-medium text-slate-700">Region:</label>
+                    <select id="region-filter" class="w-full rounded-md border-slate-300 shadow-sm bg-slate-50 border p-2 focus:ring-2 focus:ring-teal-500 transition-colors">
+                        <option value="All">All Regions</option>
+                        <option value="Canterbury">Canterbury</option>
+                        <option value="Tasman">Tasman / Golden Bay</option>
+                        <option value="Nelson">Nelson</option>
+                        <option value="West Coast">West Coast</option>
+                        <option value="Otago">Otago</option>
+                        <option value="Southland">Southland</option>
+                        <option value="Marlborough">Marlborough</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 h-auto lg:h-[800px]">
+            <!-- List -->
+            <div class="lg:col-span-5 flex flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden h-full">
+                <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                    <h3 class="font-bold text-slate-700">Destinations</h3>
+                    <span id="result-count" class="text-xs bg-teal-100 text-teal-800 px-2 py-1 rounded-full font-medium">Loading...</span>
+                </div>
+                <div id="beach-list-container" class="beach-scroll overflow-y-auto p-4 space-y-3 flex-1"></div>
+            </div>
+
+            <!-- Details -->
+            <div class="lg:col-span-7 flex flex-col gap-6 h-full overflow-y-auto beach-scroll pr-2">
+                <div id="trip-preview" class="bg-gradient-to-br from-slate-800 to-slate-700 rounded-xl shadow-lg text-white p-6 relative overflow-hidden transition-all duration-300">
+                    <div class="absolute top-0 right-0 p-4 opacity-20 text-9xl">🏖️</div>
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h2 id="preview-name" class="text-3xl font-bold tracking-tight">Select a Beach</h2>
+                                <p id="preview-region" class="text-slate-300 font-medium text-lg">to start planning</p>
+                            </div>
+                            <span id="preview-tag" class="hidden px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-sm font-semibold border border-white/30">Type</span>
+                        </div>
+                        <div id="preview-details" class="space-y-4 mb-6 opacity-50">
+                            <p class="text-slate-200">Click on a beach in the list to see route details.</p>
+                        </div>
+                        <div id="action-area" class="mt-6 pt-6 border-t border-slate-600 flex flex-wrap gap-4 items-center hidden">
+                            <a id="maps-link" href="#" target="_blank" class="inline-flex items-center justify-center px-6 py-3 bg-white text-slate-900 font-bold rounded-lg hover:bg-slate-50 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                                <span class="mr-2">🚗</span> Open Google Maps Route
+                            </a>
+                            <div class="text-sm text-slate-300">
+                                <span>Origin: <strong id="origin-display">--</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-col">
+                        <h4 class="text-sm font-bold text-slate-500 mb-4 text-center">Experience Types</h4>
+                        <div class="chart-container flex-grow"><canvas id="typeChart"></canvas></div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-col">
+                        <h4 class="text-sm font-bold text-slate-500 mb-4 text-center">Regional Distribution</h4>
+                        <div class="chart-container flex-grow"><canvas id="regionChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // South Island Beach Database
+        const beaches = [
+            // CANTERBURY
+            { id: 1, name: "Sumner Beach", region: "Canterbury", type: "Family", features: "Cave Rock, promenade, ice cream, swimming", lat: -43.57, lng: 172.76 },
+            { id: 2, name: "Taylor's Mistake", region: "Canterbury", type: "Surf", features: "Surfing, Godley Head walk start, sheltered", lat: -43.58, lng: 172.77 },
+            { id: 3, name: "New Brighton", region: "Canterbury", type: "Family", features: "Famous Pier, library, long sandy stretch", lat: -43.51, lng: 172.73 },
+            { id: 4, name: "Akaroa Main Beach", region: "Canterbury", type: "Swimming", features: "French harbour town, calm water, dolphins", lat: -43.80, lng: 172.96 },
+            { id: 5, name: "Gore Bay", region: "Canterbury", type: "Surf", features: "Cathedral Cliffs, surfing, quiet", lat: -42.86, lng: 173.30 },
+            { id: 6, name: "Le Bons Bay", region: "Canterbury", type: "Scenic", features: "Banks Peninsula gem, camping, secluded", lat: -43.74, lng: 173.10 },
+            { id: 7, name: "Caroline Bay", region: "Canterbury", type: "Family", features: "Timaru, penguins at dusk, boardwalks", lat: -44.39, lng: 171.25 },
+            
+            // NELSON / TASMAN
+            { id: 8, name: "Kaiteriteri Beach", region: "Tasman", type: "Swimming", features: "Golden sand, gateway to Abel Tasman, safe", lat: -41.03, lng: 173.01 },
+            { id: 9, name: "Tahunanui Beach", region: "Nelson", type: "Family", features: "Paddleboarding, huge playground, cafes", lat: -41.28, lng: 173.24 },
+            { id: 10, name: "Wharariki Beach", region: "Tasman", type: "Scenic", features: "Archway Islands, seal pups, wild winds", lat: -40.50, lng: 172.67 },
+            { id: 11, name: "Totaranui Beach", region: "Tasman", type: "Scenic", features: "Deep in Abel Tasman, orange sand, clear water", lat: -40.82, lng: 173.00 },
+            
+            // WEST COAST
+            { id: 12, name: "Hokitika Beach", region: "West Coast", type: "Scenic", features: "Driftwood sign, sunset, jade hunting", lat: -42.71, lng: 170.96 },
+            { id: 13, name: "Punakaiki (Pancake Rocks)", region: "West Coast", type: "Scenic", features: "Blowholes, limestone stacks, wild surf", lat: -42.11, lng: 171.33 },
+            { id: 14, name: "Bruce Bay", region: "West Coast", type: "Scenic", features: "Rimu forest meets ocean, white stones", lat: -43.60, lng: 169.60 },
+            { id: 15, name: "Carters Beach", region: "West Coast", type: "Family", features: "Westport, safe swimming, north facing", lat: -41.74, lng: 171.56 },
+            
+            // OTAGO
+            { id: 16, name: "St Clair Beach", region: "Otago", type: "Surf", features: "Dunedin surf, saltwater pool, esplanade", lat: -45.91, lng: 170.48 },
+            { id: 17, name: "Moeraki Boulders Beach", region: "Otago", type: "Scenic", features: "Spherical boulders, cafe, photography", lat: -45.35, lng: 170.82 },
+            { id: 18, name: "Tunnel Beach", region: "Otago", type: "Scenic", features: "Sandstone arch, hand-carved tunnel", lat: -45.92, lng: 170.45 },
+            { id: 19, name: "Allan's Beach", region: "Otago", type: "Scenic", features: "Otago Peninsula, sea lions, wildlife", lat: -45.88, lng: 170.69 },
+            { id: 20, name: "Queenstown Bay", region: "Otago", type: "Swimming", features: "Lake Wakatipu, mountain views, buzzing", lat: -45.03, lng: 168.66 },
+            
+            // SOUTHLAND
+            { id: 21, name: "Curio Bay", region: "Southland", type: "Scenic", features: "Petrified forest, Hectors dolphins", lat: -46.66, lng: 169.10 },
+            { id: 22, name: "Riverton Rocks", region: "Southland", type: "Surf", features: "Riviera of the South, surfing, bays", lat: -46.36, lng: 168.00 },
+            { id: 23, name: "Oreti Beach", region: "Southland", type: "Surf", features: "Driving on beach, Burt Munro history", lat: -46.45, lng: 168.23 },
+            
+            // MARLBOROUGH
+            { id: 24, name: "Whites Bay", region: "Marlborough", type: "Surf", features: "Hidden cove, surf, camping", lat: -41.38, lng: 174.06 },
+        ];
+
+        // Travel Logic (Optimized for South Island Roads)
+        // Note: South Island roads can be slow. "Day Trip" < 3.5 hrs one way.
+        const roadNetwork = {
+            "Christchurch": { "Canterbury": "Short Drive", "Marlborough": "Long Day Trip", "West Coast": "Long Day Trip", "Otago": "Long Day Trip", "Tasman": "Weekend Trip", "Nelson": "Weekend Trip", "Southland": "Weekend Trip" },
+            "Dunedin": { "Otago": "Short Drive", "Southland": "Long Day Trip", "Canterbury": "Long Day Trip", "West Coast": "Weekend Trip" },
+            "Nelson": { "Nelson": "Short Drive", "Tasman": "Short Drive", "Marlborough": "Short Drive", "West Coast": "Long Day Trip", "Canterbury": "Weekend Trip" },
+            "Queenstown": { "Otago": "Short Drive", "Southland": "Long Day Trip", "West Coast": "Long Day Trip", "Canterbury": "Weekend Trip" }
+        };
+
+        // Fallback for unmapped routes
+        const defaultDifficulty = "Weekend Trip";
+
+        let state = {
+            homeBase: "Christchurch",
+            selectedType: "All",
+            selectedRegionFilter: "All",
+            selectedBeachId: null
+        };
+
+        const homeBaseSelect = document.getElementById('home-base');
+        const typeSelect = document.getElementById('beach-type');
+        const regionSelect = document.getElementById('region-filter');
+        const beachListContainer = document.getElementById('beach-list-container');
+        const resultCountLabel = document.getElementById('result-count');
+        const tripPreviewCard = document.getElementById('trip-preview');
+        const previewName = document.getElementById('preview-name');
+        const previewRegion = document.getElementById('preview-region');
+        const previewTag = document.getElementById('preview-tag');
+        const previewDetails = document.getElementById('preview-details');
+        const actionArea = document.getElementById('action-area');
+        const mapsLink = document.getElementById('maps-link');
+        const originDisplay = document.getElementById('origin-display');
+
+        function init() {
+            renderBeachList();
+            renderCharts();
+            
+            homeBaseSelect.addEventListener('change', (e) => {
+                state.homeBase = e.target.value;
+                renderBeachList();
+                updatePreviewIfSelected();
+            });
+            typeSelect.addEventListener('change', (e) => {
+                state.selectedType = e.target.value;
+                renderBeachList();
+            });
+            regionSelect.addEventListener('change', (e) => {
+                state.selectedRegionFilter = e.target.value;
+                renderBeachList();
+            });
+        }
+
+        function getTripFeasibility(beachRegion, homeCity) {
+            // Check direct city map first
+            if (roadNetwork[homeCity] && roadNetwork[homeCity][beachRegion]) {
+                const status = roadNetwork[homeCity][beachRegion];
+                let color = "bg-red-100 text-red-800";
+                if (status === "Short Drive") color = "bg-green-100 text-green-800";
+                if (status === "Long Day Trip") color = "bg-yellow-100 text-yellow-800";
+                return { label: status, color: color };
+            }
+            // Same region check
+            if (beachRegion === homeCity) return { label: "Short Drive", color: "bg-green-100 text-green-800" };
+            
+            return { label: "Weekend Trip", color: "bg-red-100 text-red-800" };
+        }
+
+        function renderBeachList() {
+            const filtered = beaches.filter(b => {
+                return (state.selectedType === "All" || b.type === state.selectedType) &&
+                       (state.selectedRegionFilter === "All" || b.region === state.selectedRegionFilter);
+            });
+
+            resultCountLabel.textContent = `${filtered.length} Found`;
+            beachListContainer.innerHTML = '';
+
+            filtered.forEach(beach => {
+                const trip = getTripFeasibility(beach.region, state.homeBase);
+                const card = document.createElement('div');
+                card.className = `p-4 border border-slate-100 rounded-lg hover:shadow-md transition-shadow cursor-pointer bg-white group ${state.selectedBeachId === beach.id ? 'ring-2 ring-teal-500 bg-teal-50' : ''}`;
+                card.onclick = () => selectBeach(beach);
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-1">
+                        <h4 class="font-bold text-slate-800 group-hover:text-teal-700">${beach.name}</h4>
+                        <span class="text-xs px-2 py-0.5 rounded ${trip.color}">${trip.label}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs text-slate-500">
+                        <span>${beach.region}</span>
+                        <span class="px-2 py-0.5 bg-slate-100 rounded text-slate-600">${beach.type}</span>
+                    </div>
+                `;
+                beachListContainer.appendChild(card);
+            });
+        }
+
+        function selectBeach(beach) {
+            state.selectedBeachId = beach.id;
+            renderBeachList();
+            tripPreviewCard.className = "bg-gradient-to-br from-teal-700 to-teal-900 rounded-xl shadow-lg text-white p-6 relative overflow-hidden transition-all duration-300";
+            
+            previewName.textContent = beach.name;
+            previewRegion.textContent = beach.region;
+            previewTag.textContent = beach.type;
+            previewTag.classList.remove('hidden');
+
+            const trip = getTripFeasibility(beach.region, state.homeBase);
+
+            previewDetails.innerHTML = `
+                <div class="grid grid-cols-2 gap-4 mt-4">
+                    <div class="bg-white/10 p-3 rounded-lg">
+                        <p class="text-xs text-teal-200 uppercase tracking-wider">Feasibility</p>
+                        <p class="font-bold text-white">${trip.label}</p>
+                    </div>
+                    <div class="bg-white/10 p-3 rounded-lg">
+                        <p class="text-xs text-teal-200 uppercase tracking-wider">Highlights</p>
+                        <p class="font-bold text-white text-sm">${beach.features}</p>
+                    </div>
+                </div>
+                <p class="mt-4 text-teal-100 text-sm">
+                    Plan your journey to ${beach.name}. Ensure you check local tide times and weather conditions before departing.
+                </p>
+            `;
+            
+            previewDetails.classList.remove('opacity-50');
+            actionArea.classList.remove('hidden');
+            originDisplay.textContent = state.homeBase;
+            mapsLink.href = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(state.homeBase + ", NZ")}&destination=${encodeURIComponent(beach.name + ", " + beach.region + ", NZ")}&travelmode=driving`;
+        }
+
+        function updatePreviewIfSelected() {
+            if (state.selectedBeachId) {
+                const b = beaches.find(x => x.id === state.selectedBeachId);
+                if(b) selectBeach(b);
+            }
+        }
+
+        function renderCharts() {
+            // Simple aggregations
+            const types = {}; const regions = {};
+            beaches.forEach(b => {
+                types[b.type] = (types[b.type] || 0) + 1;
+                regions[b.region] = (regions[b.region] || 0) + 1;
+            });
+
+            new Chart(document.getElementById('typeChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(types),
+                    datasets: [{ data: Object.values(types), backgroundColor: ['#2dd4bf', '#14b8a6', '#0d9488', '#0f766e'], borderWidth: 0 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            });
+
+            new Chart(document.getElementById('regionChart'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(regions),
+                    datasets: [{ label: 'Beaches', data: Object.values(regions), backgroundColor: '#115e59', borderRadius: 4 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>
